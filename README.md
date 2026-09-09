@@ -24,3 +24,6 @@ sudo reboot
 ```
 
 From now on, your device will detect the eGPU connection when it happens, and fully switch to it within 60 seconds. The script supports hotplug. You can plug and unplug the eGPU anytime without shutting down the system. On unplugging, the system will restart the display manager (your session, most likely gamescope) using the internal GPU/screen and restore iGPU settings.
+
+Tested on:
+ROG Ally X
