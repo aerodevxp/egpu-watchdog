@@ -1,9 +1,9 @@
 # egpu-watchdog
-Scripts and services to be used in tandem with docksettings and allwaysegpu for a seamless eGPU docking and undocking experience.
+Scripts and services to be used in tandem with my fork of docksettings and all-ways-egpu for a seamless eGPU docking and undocking experience.
 
 Follow the folders and copy the file structure on your Linux system.
 
-##Requirements + Steps
+## Requirements + Steps
 [all-ways-egpu](https://github.com/ewagner12/all-ways-egpu) under $HOME/bin and have it setup already. This handles the device switch.
 My fork of [docksettings](https://github.com/aerodevxp/egpudocksettings) setup already. This handles the game settings switch. You WILL have to edit the following files to state the location of docksettings.sh:
 ```
