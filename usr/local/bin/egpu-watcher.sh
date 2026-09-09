@@ -36,17 +36,15 @@ while true; do
     if [ "$PREV_STATE" != "$CURR_STATE" ]; then
         case "$CURR_STATE" in
             present)
-                #egpu detected, kill igpu
-                echo "gogogooo"
                 sudo "$USER_HOME/bin/switch-egpu.sh"
                 sleep 30
                 ;;
             absent)
-                #nothing to do. iGPU is active, and being used with no eGPU in sight.
+                sudo "$USER_HOME/bin/switch-internal.sh"
+                sleep 30
                 ;;
             none)
-                #igpu is disabled and egpu is gone. bring igpu back
-                sudo "$USER_HOME/bin/switch-internal.sh"
+                wall "NO GPU detected??"
                 ;;
         esac
     fi

@@ -10,15 +10,12 @@ USER_HOME=$(getent passwd 1000 | cut -d: -f6)
 
 [ -z "$USER_NAME" ] && { echo "Could not find user with UID 1000"; exit 1; }
 
-#SETTINGS (CHANGE THIS PATH TO YOUR DOCKSETTINGS LOCATION)
-
-#HARDWARE
-#systemctl --user set-environment MESA_VK_DEVICE_SELECT=
-
 # Get uptime in seconds
 uptime_seconds=$(cut -d. -f1 /proc/uptime)
 
+
 if [ "$uptime_seconds" -lt 60 ]; then
+    #not executing anything in the first 60 seconds - the watcher already sets the settings and the iGPU is the default on boot
     echo "System uptime is less than a minute ($uptime_seconds seconds)"
     exit
 else
@@ -26,16 +23,17 @@ else
     echo "System uptime is $uptime_seconds seconds"
     systemctl --machine="${USER_NAME}@.host" --user stop sunshine
     sudo pkill sunshine
-    wlr-randr --output eDP-1 --on
+    #SETTINGS - CHANGE THIS PATH
+    sudo -i -u "$USER_NAME" /run/media/system/GAMES/docksettings/docksettings.sh -g igpu
     sudo -i -u "$USER_NAME" "$USER_HOME/bin/all-ways-egpu" set-compositor-primary internal
     sleep 3
     sudo -i -u "$USER_NAME" cardwire debug refresh-gpu
-    sleep 2
     sudo systemctl restart display-manager
     sleep 3
-    sudo -i -u "$USER_NAME" /run/media/system/GAMES/docksettings/docksettings.sh -g igpu
     echo 30000 | sudo tee /sys/class/backlight/*/brightness
     sleep 5
-    INTERNAL_SINK=$(sudo -i -u "$USER_NAME" pactl list short sinks | grep analog-stereo | head -1 | cut -f2) [ -n "$INTERNAL_SINK" ]
-    sudo -i -u "$USER_NAME" pactl set-default-sink "$INTERNAL_SINK"
 fi
+
+
+
+
