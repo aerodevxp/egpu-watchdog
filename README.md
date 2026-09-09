@@ -4,8 +4,8 @@ Scripts and services to be used in tandem with my fork of docksettings and all-w
 Follow the folders and copy the file structure on your Linux system.
 
 ## Requirements + Steps
-[all-ways-egpu](https://github.com/ewagner12/all-ways-egpu) under $HOME/bin and have it setup already. This handles the device switch.
-My fork of [docksettings](https://github.com/aerodevxp/egpudocksettings) setup already. This handles the game settings switch. You WILL have to edit the following files to state the location of docksettings.sh:
+- [all-ways-egpu](https://github.com/ewagner12/all-ways-egpu) under $HOME/bin and have it setup already. This handles the device switch.
+- My fork of [docksettings](https://github.com/aerodevxp/egpudocksettings) setup already. This handles the game settings switch. You WILL have to edit the following files to state the location of docksettings.sh:
 ```
 /usr/local/bin/egpu-watcher.sh
 $HOME/bin/switch-egpu.sh
