@@ -17,7 +17,14 @@ Under '/usr/local/bin/egpu-watcher.sh', you must also change the EGPU_ID for you
 sudo lspci -nn | grep -E 'VGA|3D|Display'
 ```
 
-After everything has been put in place, run:
+Now, in your sudoers file (run 'visudo'). I am using the deck user as an example here. Replace deck with your username:
+```
+# Allow your user to run egpu scripts without password
+deck ALL=(ALL) NOPASSWD: /home/deck/bin/switch-egpu.sh, /home/deck/bin/switch-internal.sh
+```
+*visudo usually uses vim. you must press 'i' to insert text, and then Esc,:,w,q in sequence to leave and save.*
+
+Finally, after everything has been put in place, run:
 ```
 sudo systemctl enable egpu-watcher.service
 sudo reboot
