@@ -19,11 +19,17 @@ sudo -i -u "$USER_NAME" /run/media/system/GAMES/docksettings/docksettings.sh -g 
 systemctl --machine="${USER_NAME}@.host" --user stop sunshine
 sudo pkill sunshine
 sudo -i -u "$USER_NAME" "$USER_HOME/bin/all-ways-egpu" set-compositor-primary egpu
-sleep 3
+sleep 1
+
+
+#cpu boost amd
+sudo systemctl stop autotdp
+sudo ryzenadj -a 53000 -f 53000 -b 53000
+echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference
+echo 1 | sudo tee /sys/devices/system/cpu/cpufreq/boost
 
 # for Bazzite
-cardwire debug refresh-gpu
-sleep 1
 sudo -i -u "$USER_NAME" cardwire debug refresh-gpu
 
 sudo systemctl restart display-manager
