@@ -1,5 +1,7 @@
 #!/bin/bash
 
+systemctl stop display-manager
+
 # Resolve the primary user (first user with UID 1000)
 USER_NAME=$(getent passwd 1000 | cut -d: -f1)
 USER_HOME=$(getent passwd 1000 | cut -d: -f6)
@@ -12,10 +14,8 @@ STATE_FILE="/run/user/${USER_UID}/egpu-watcher.state"
 # lspci -nn | grep -E 'VGA|3D|Display'
 EGPU_ID="1002:73bf" #RX6800
 
-#(CHANGE THIS PATH TO YOUR DOCKSETTINGS LOCATION)
-#ensure the state of settings is iGPU, just like the state of the device on boot
-sudo -i -u "$USER_NAME" /run/media/system/GAMES/docksettings/docksettings.sh -g igpu
-sleep 5
+#fresh start on boot
+rm -rf "$STATE_FILE"
 
 while true; do
 
@@ -36,6 +36,7 @@ while true; do
     if [ "$PREV_STATE" != "$CURR_STATE" ]; then
         case "$CURR_STATE" in
             present)
+                #egpu detected, do not use igpu
                 sudo "$USER_HOME/bin/switch-egpu.sh"
                 sleep 30
                 ;;
