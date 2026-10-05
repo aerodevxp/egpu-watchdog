@@ -1,7 +1,9 @@
-# egpu-watchdog
+# egpu-watchdog for Gamescope
 Scripts and services to be used in tandem with my fork of docksettings and all-ways-egpu for a seamless eGPU docking and undocking experience.
 
 Follow the folders and copy the file structure on your Linux system. Better install and configuration method coming soon.
+
+This will most likely work on other sessions thanks to all-ways-egpu, but that's not something I'm officially supporting.
 
 ## Requirements + Steps
 - [all-ways-egpu](https://github.com/ewagner12/all-ways-egpu) under $HOME/bin and have it setup already. This handles the device switch.

@@ -37,7 +37,7 @@ while true; do
         case "$CURR_STATE" in
             present)
                 #egpu detected, do not use igpu
-                sudo "$USER_HOME/bin/switch-egpu.sh"
+                sudo "$USER_HOME/bin/switch-egpu.sh" $EGPU_ID
                 sleep 30
                 ;;
             absent)
