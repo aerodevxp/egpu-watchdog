@@ -19,12 +19,13 @@ Under '/usr/local/bin/egpu-watcher.sh', you must also change the EGPU_ID for you
 sudo lspci -nn | grep -E 'VGA|3D|Display'
 ```
 
-Now, in your sudoers file (run 'visudo'). I am using the deck user as an example here. Replace deck with your username:
+Now, in your sudoers file (run 'EDITOR=nano visudo'). I am using the deck user as an example here. Replace deck with your username:
 ```
 # Allow your user to run egpu scripts without password
-deck ALL=(ALL) NOPASSWD: /home/deck/bin/switch-egpu.sh, /home/deck/bin/switch-internal.sh
+deck ALL=(ALL) NOPASSWD: /home/deck/bin/switch-egpu.sh, /home/deck/bin/switch-internal.sh, /home/bin/all-ways-egpu
+
 ```
-*visudo usually uses vim. you must press 'i' to insert text, and then Esc,:,w,q in sequence to leave and save.*
+*Once your edits are done; Ctrl+O -> Enter -> Ctrl+Q.*
 
 Finally, after everything has been put in place, run:
 ```
@@ -34,5 +35,8 @@ sudo reboot
 
 From now on, your device will detect the eGPU connection when it happens, and fully switch to it within 60 seconds. The script supports hotplug. You can plug and unplug the eGPU anytime without shutting down the system. On unplugging, the system will restart the display manager (your session, most likely gamescope) using the internal GPU/screen and restore iGPU settings.
 
+There's a bug with CachyOS and the AG03 Dock that requires a reboot before docking a second time. If you plug in your eGPU and nothing happens for more than 90 seconds, reboot the device and it will work.
+
 Tested on:
 ROG Ally X + Bazzite 44
+ROG Ally X + CachyOS

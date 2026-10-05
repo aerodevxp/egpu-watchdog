@@ -22,18 +22,10 @@ sudo -i -u "$USER_NAME" "$USER_HOME/bin/egpudocksettings-main/docksettings.sh" -
 systemctl --machine="${USER_NAME}@.host" --user stop sunshine
 pkill sunshine
 #For supported versions
-sudo -i -u "$USER_NAME" "$USER_HOME/bin/all-ways-egpu" set-compositor-primary egpu
+sudo "$USER_HOME/bin/all-ways-egpu" set-compositor-primary egpu
 #For all the rest
 systemctl --machine="${USER_NAME}@.host" --user set-environment MESA_VK_DEVICE_SELECT=${EGPU_ID}
 sleep 1
-
-
-#cpu boost amd
-systemctl stop autotdp
-ryzenadj -a 53000 -f 53000 -b 53000
-echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference
-echo 1 | sudo tee /sys/devices/system/cpu/cpufreq/boost
 
 # for Bazzite
 sudo -i -u "$USER_NAME" cardwire debug refresh-gpu
