@@ -15,9 +15,6 @@ USER_HOME=$(getent passwd 1000 | cut -d: -f6)
 
 systemctl stop display-manager
 
-#SETTINGS (CHANGE THIS PATH TO YOUR DOCKSETTINGS LOCATION)
-sudo -i -u "$USER_NAME" "$USER_HOME/bin/egpudocksettings-main/docksettings.sh" -g egpu
-
 #HARDWARE SWITCH
 systemctl --machine="${USER_NAME}@.host" --user stop sunshine
 pkill sunshine
@@ -31,11 +28,13 @@ sleep 1
 sudo -i -u "$USER_NAME" cardwire debug refresh-gpu
 
 systemctl restart display-manager
-
-
 # audio
-sleep 10
 sudo -i -u "$USER_NAME" pactl set-default-sink alsa_output.pci-0000_08_00.1.hdmi-stereo-extra3
+
+
+#SETTINGS (CHANGE THIS PATH TO YOUR DOCKSETTINGS LOCATION)
+sudo -i -u "$USER_NAME" "$USER_HOME/bin/egpudocksettings-main/docksettings.sh" -g egpu
+
 
 echo 0 | sudo tee /sys/class/backlight/*/brightness
 

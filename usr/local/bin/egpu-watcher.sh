@@ -1,68 +1,107 @@
 #!/bin/bash
 
+[ "$(id -u)" -eq 0 ] || { echo "must run as root"; exit 1; }
+
+LOG="/var/log/egpu-watcher.log"
+: > "$LOG"
+log() { printf '%s %s\n' "$(date +%T)" "$*" | tee -a "$LOG"; }
+
+log "started"
+
+sleep 6
 systemctl stop display-manager
 
-# Resolve the primary user (first user with UID 1000)
 USER_NAME=$(getent passwd 1000 | cut -d: -f1)
 USER_HOME=$(getent passwd 1000 | cut -d: -f6)
 USER_UID=1000
 
-[ -z "$USER_NAME" ] && { echo "Could not find user with UID 1000"; exit 1; }
+[ -z "$USER_NAME" ] && { log "no uid 1000"; exit 1; }
 
 STATE_FILE="/run/user/${USER_UID}/egpu-watcher.state"
-#CHANGE THIS TO YOUR EGPU ID. You can find it with:
-# lspci -nn | grep -E 'VGA|3D|Display'
 EGPU_ID="1002:73bf" #RX6800
 IGPU_ID="1002:1638" #z1 extreme igpu
-#fresh start on boot
+EGPU_VENDOR="${EGPU_ID%%:*}"
+EGPU_DEVICE="${EGPU_ID##*:}"
+
+NODRM_TIMEOUT=8
+
 rm -rf "$STATE_FILE"
 
-while true; do
+cleanup() {
+    log "exit"
+    echo 0000:64:00.0 | sudo tee /sys/bus/pci/drivers/amdgpu/bind >/dev/null 2>&1
+    systemctl reset-failed plasmalogin 2>/dev/null
+    systemctl start display-manager
+    exit 0
+}
+trap cleanup INT TERM
 
+norm() { printf '%s' "$1" | tr 'A-F' 'a-f' | sed 's/^0x//'; }
+
+find_pci() {
+    local dev
+    for dev in /sys/bus/pci/devices/*; do
+        [ -d "$dev" ] || continue
+        [ -r "$dev/vendor" ] || continue
+        if [ "$(norm "$(cat "$dev/vendor" 2>/dev/null)"):$(norm "$(cat "$dev/device" 2>/dev/null)")" = \
+             "$(norm "$EGPU_VENDOR"):$(norm "$EGPU_DEVICE")" ]; then
+            printf '%s\n' "$dev"
+            return 0
+        fi
+    done
+    return 1
+}
+
+NODRM_SINCE=""
+
+while true; do
     if [ -f "$STATE_FILE" ]; then
         PREV_STATE=$(cat "$STATE_FILE")
     else
         PREV_STATE="unknown"
     fi
 
-    EGPU_VENDOR=$(echo "$EGPU_ID" | cut -d: -f1)
-    EGPU_DEVICE=$(echo "$EGPU_ID" | cut -d: -f2)
-    EGPU_DRM=0
-    EGPU_PCI_PATH=""
-    for dev in /sys/bus/pci/devices/*; do
-        [ -d "$dev" ] || continue
-        vid=$(cat "$dev/vendor" 2>/dev/null | sed 's/0x//' | tr 'A-F' 'a-f')
-        did=$(cat "$dev/device" 2>/dev/null | sed 's/0x//' | tr 'A-F' 'a-f')
-        if [ "$vid" = "$(echo "$EGPU_VENDOR" | tr 'A-F' 'a-f')" ] && [ "$did" = "$(echo "$EGPU_DEVICE" | tr 'A-F' 'a-f')" ]; then
-            EGPU_PCI_PATH="$dev"
-            if ls "$dev"/drm/card* >/dev/null 2>&1; then
-                EGPU_DRM=1
-            fi
-        fi
-    done
-
-    if [ "$EGPU_DRM" = "1" ]; then
-        CURR_STATE="present"
-    else
+    PCI=""
+    if ! PCI="$(find_pci)"; then
         CURR_STATE="absent"
+        NODRM_SINCE=""
+    elif compgen -G "$PCI/drm/card*" >/dev/null; then
+        CURR_STATE="present"
+        NODRM_SINCE=""
+    else
+        CURR_STATE="pending"
+        if [ -z "$NODRM_SINCE" ]; then
+            NODRM_SINCE=$(date +%s)
+            log "eGPU present, no DRM - timer started"
+        fi
     fi
 
-    if [ "$PREV_STATE" != "$CURR_STATE" ]; then
+    if [ "$PREV_STATE" != "$CURR_STATE" ] && [ "$CURR_STATE" != "pending" ]; then
+        log "state: $PREV_STATE -> $CURR_STATE"
         case "$CURR_STATE" in
             present)
-                #egpu detected, do not use igpu
-                sudo "$USER_HOME/bin/switch-egpu.sh" $EGPU_ID
+                "$USER_HOME/bin/switch-egpu.sh" "$EGPU_ID"
                 ;;
             absent)
-                sudo "$USER_HOME/bin/switch-internal.sh" $IGPU_ID
-                #to have proper memory for replug
-                echo 1 | sudo tee /proc/sys/vm/compact_memory > /dev/null
-                echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
+                "$USER_HOME/bin/switch-internal.sh" "$IGPU_ID"
                 ;;
         esac
     fi
 
-    echo "$CURR_STATE" > "$STATE_FILE"
-    echo "$CURR_STATE"
-    sleep 3
+    [ "$CURR_STATE" != "pending" ] && echo "$CURR_STATE" > "$STATE_FILE"
+    log "$CURR_STATE"
+
+    if [ "$CURR_STATE" = "pending" ]; then
+        elapsed=$(( $(date +%s) - NODRM_SINCE ))
+        if [ "$elapsed" -ge "$NODRM_TIMEOUT" ]; then
+            log "no DRM for ${elapsed}s - rebooting"
+            [ -e "$PCI/driver" ] && syswrite "$PCI/remove" 1
+            echo "reb"
+            echo s | sudo tee /proc/sysrq-trigger    # sync
+            echo u | sudo tee /proc/sysrq-trigger    # remount everything read-only
+            echo b | sudo tee /proc/sysrq-trigger    # reboot now
+        fi
+    fi
+
+    sleep 3 & wait $!
 done
