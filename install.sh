@@ -12,6 +12,10 @@ info()  { echo -e "${GREEN}[INFO]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; }
 
+tty_read() {
+    read -rp "$1" "$2" < /dev/tty
+}
+
 # Must be root
 if [ "$EUID" -ne 0 ]; then
     error "Please run as root: sudo bash $0"
@@ -79,7 +83,7 @@ echo "  3. Type 'skip' to skip (game settings won't be switched)"
 echo ""
 
 DOCKSETTINGS_INPUT=""
-read -rp "Choice [Enter=clone/skip]: " DOCKSETTINGS_INPUT || { echo "Aborted."; exit 1; }
+tty_read "Choice [Enter=clone/skip]: " DOCKSETTINGS_INPUT || { echo "Aborted."; exit 1; }
 
 DOCKSETTINGS_SCRIPT=""
 DOCKSETTINGS_DIR=""
@@ -158,14 +162,14 @@ lspci -nn | grep -E 'VGA|3D|Display' || true
 echo ""
 
 EGPU_ID=""
-read -rp "Enter your eGPU PCI ID (e.g., 1002:73bf): " EGPU_ID || { echo "Aborted."; exit 1; }
+tty_read "Enter your eGPU PCI ID (e.g., 1002:73bf): " EGPU_ID || { echo "Aborted."; exit 1; }
 if [ -z "$EGPU_ID" ]; then
     error "eGPU PCI ID is required"
     exit 1
 fi
 
 IGPU_ID=""
-read -rp "Enter your iGPU PCI ID (e.g., 1002:1638): " IGPU_ID || { echo "Aborted."; exit 1; }
+tty_read "Enter your iGPU PCI ID (e.g., 1002:1638): " IGPU_ID || { echo "Aborted."; exit 1; }
 if [ -z "$IGPU_ID" ]; then
     error "iGPU PCI ID is required"
     exit 1
@@ -185,7 +189,7 @@ echo "  all-ways-egpu: ${ALL_WAYS_EGPU:-NOT FOUND}"
 echo "  Service runs:  as root"
 echo ""
 
-read -rp "Proceed with installation? (y/N): " CONFIRM || { echo "Aborted."; exit 1; }
+tty_read "Proceed with installation? (y/N): " CONFIRM || { echo "Aborted."; exit 1; }
 if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
     echo "Aborted."
     exit 0
