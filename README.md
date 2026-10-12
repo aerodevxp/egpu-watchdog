@@ -1,6 +1,8 @@
 # egpu-watchdog for Gamescope
 Scripts and services to be used in tandem with my fork of docksettings (and optionally all-ways-egpu) for a seamless eGPU docking and undocking experience.
 
+Your device WILL hard-restart when de-plugging the eGPU, and will restart the session when plugging it in. Ensure your work is saved before switching GPUs.
+
 
 Installation:
 ```
