@@ -27,6 +27,7 @@ sleep 1
 # for Bazzite
 sudo -i -u "$USER_NAME" cardwire debug refresh-gpu
 
+
 systemctl restart display-manager
 # audio
 sudo -i -u "$USER_NAME" pactl set-default-sink alsa_output.pci-0000_08_00.1.hdmi-stereo-extra3

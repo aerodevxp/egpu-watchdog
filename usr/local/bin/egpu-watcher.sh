@@ -8,9 +8,6 @@ log() { printf '%s %s\n' "$(date +%T)" "$*" | tee -a "$LOG"; }
 
 log "started"
 
-sleep 6
-systemctl stop display-manager
-
 USER_NAME=$(getent passwd 1000 | cut -d: -f1)
 USER_HOME=$(getent passwd 1000 | cut -d: -f6)
 USER_UID=1000
@@ -26,15 +23,6 @@ EGPU_DEVICE="${EGPU_ID##*:}"
 NODRM_TIMEOUT=8
 
 rm -rf "$STATE_FILE"
-
-cleanup() {
-    log "exit"
-    echo 0000:64:00.0 | sudo tee /sys/bus/pci/drivers/amdgpu/bind >/dev/null 2>&1
-    systemctl reset-failed plasmalogin 2>/dev/null
-    systemctl start display-manager
-    exit 0
-}
-trap cleanup INT TERM
 
 norm() { printf '%s' "$1" | tr 'A-F' 'a-f' | sed 's/^0x//'; }
 
@@ -53,6 +41,9 @@ find_pci() {
 }
 
 NODRM_SINCE=""
+
+#await proper boot
+sleep 5
 
 while true; do
     if [ -f "$STATE_FILE" ]; then
@@ -103,5 +94,5 @@ while true; do
         fi
     fi
 
-    sleep 3 & wait $!
+    sleep 3
 done
