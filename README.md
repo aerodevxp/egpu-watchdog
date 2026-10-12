@@ -4,7 +4,7 @@ Scripts and services to be used in tandem with my fork of docksettings and all-w
 
 Installation:
 ```
-curl -fsSL https://raw.githubusercontent.com/aerodevxp/egpu-watchdog/main/install.sh | sudo bash
+curl -fsSL -o /tmp/egpu-install.sh https://raw.githubusercontent.com/aerodevxp/egpu-watchdog/main/install.sh && chmod +x /tmp/egpu-install.sh && sudo /tmp/egpu-install.sh; rm -f /tmp/egpu-install.sh
 ```
 OR Follow the folders and copy the file structure on your Linux system.
 
